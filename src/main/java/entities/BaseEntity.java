@@ -3,7 +3,7 @@ package entities;
 public abstract class BaseEntity<I> {
 
     public static final String ID_SQL = "id";
-    private I id;
+    protected I id;
 
     public I getId() {
         return id;
@@ -17,4 +17,5 @@ public abstract class BaseEntity<I> {
         return id != null;
     }
 
+    public abstract String getTableName();
 }

@@ -13,6 +13,14 @@ import java.util.Optional;
 
 public class WalletRepository extends BaseRepository<Wallet, Integer> {
 
+    private static final class WalletRepositoryHolder {
+        private static final WalletRepository WALLET_REPOSITORY = new WalletRepository();
+    }
+
+    public static WalletRepository getInstance() {
+        return WalletRepositoryHolder.WALLET_REPOSITORY;
+    }
+
     @Override
     public void create(Wallet wallet) throws SQLException {
 
@@ -25,6 +33,7 @@ public class WalletRepository extends BaseRepository<Wallet, Integer> {
             statement.setInt(2, wallet.getUserId());
 
             statement.execute();
+            setCreatedId(wallet, statement);
         } finally {
             connection.close();
         }

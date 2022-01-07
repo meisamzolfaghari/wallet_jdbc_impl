@@ -2,7 +2,6 @@ package repos;
 
 import config.ConnectionFactory;
 import entities.BaseEntity;
-import entities.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,23 +10,30 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class BaseRepository<T extends BaseEntity<I>, I> {
+public abstract class BaseRepository<E extends BaseEntity<I>, I> {
 
     protected final Connection connection = ConnectionFactory.getConnection();
 
-    public abstract void create(T entity) throws SQLException;
+    public abstract void create(E entity) throws SQLException;
 
-    public abstract Optional<T> findById(I id) throws SQLException;
+    public abstract Optional<E> findById(I id) throws SQLException;
 
-    public abstract void update(T entity) throws SQLException;
+    public abstract void update(E entity) throws SQLException;
 
-    public abstract List<T> findAll() throws SQLException;
-
-    public T getById(I id) throws SQLException {
-        return findById(id).orElseThrow(() ->
-                new IllegalStateException("entity not found with id: " + id));
-    }
+    public abstract List<E> findAll() throws SQLException;
 
     protected abstract String getTableName();
+
+    @SuppressWarnings("unchecked")
+    protected void setCreatedId(E entity, PreparedStatement statement) throws SQLException {
+        ResultSet generatedKeys = statement.getGeneratedKeys();
+        if (generatedKeys.next())
+            entity.setId((I) generatedKeys.getObject(1));
+        else throw new SQLException("Creating entity failed, no ID obtained!");
+    }
+
+    public Connection getConnection() {
+        return connection;
+    }
 
 }

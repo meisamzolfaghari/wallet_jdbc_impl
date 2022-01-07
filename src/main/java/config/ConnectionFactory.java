@@ -12,7 +12,9 @@ public class ConnectionFactory {
 
     public static Connection getConnection() {
         try {
-            return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            connection.setAutoCommit(false);
+            return connection;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException("mysql connection is missing!");

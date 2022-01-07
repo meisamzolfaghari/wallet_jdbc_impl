@@ -1,5 +1,5 @@
 package entities;
 
 public enum TransactionType {
-    CREDIT, DEBIT
+    USER_TO_USER, WITHDRAW, DEPOSIT
 }

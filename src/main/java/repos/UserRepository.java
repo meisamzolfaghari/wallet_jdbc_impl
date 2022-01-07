@@ -2,6 +2,7 @@ package repos;
 
 import entities.BaseEntity;
 import entities.User;
+import entities.dto.UserDetails;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,19 +13,28 @@ import java.util.Optional;
 
 public class UserRepository extends BaseRepository<User, Integer> {
 
+    private static final class UserRepositoryHolder {
+        private static final UserRepository USER_REPOSITORY = new UserRepository();
+    }
+
+    public static UserRepository getInstance() {
+        return UserRepositoryHolder.USER_REPOSITORY;
+    }
+
     @Override
     public void create(User user) throws SQLException {
 
         String sql = String.format("insert into %s (%s, %s, %s) values (?, ?, ?)",
-                getTableName(), User.NAME_SQL, User.PASSWORD_HASH_SQL, User.EMAIL_SQL);
+                getTableName(), User.USERNAME_SQL, User.PASSWORD_HASH_SQL, User.EMAIL_SQL);
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setString(1, user.getName());
+            statement.setString(1, user.getUsername());
             statement.setString(2, user.getPasswordHash());
             statement.setString(3, user.getEmail());
 
             statement.execute();
+            setCreatedId(user, statement);
         } finally {
             connection.close();
         }
@@ -43,7 +53,7 @@ public class UserRepository extends BaseRepository<User, Integer> {
 
                 User user = new User();
                 user.setId(resultSet.getInt(BaseEntity.ID_SQL));
-                user.setName(resultSet.getString(User.NAME_SQL));
+                user.setUsername(resultSet.getString(User.USERNAME_SQL));
                 user.setPasswordHash(resultSet.getString(User.PASSWORD_HASH_SQL));
                 user.setWalletId(resultSet.getInt(User.WALLET_ID_SQL));
 
@@ -56,16 +66,42 @@ public class UserRepository extends BaseRepository<User, Integer> {
         return Optional.empty();
     }
 
+    public Optional<User> findByUsername(String username) throws SQLException {
+        String sql = String.format("select * from %s where %s = ?;", getTableName(), User.USERNAME_SQL);
+        Optional<User> userOptional = Optional.empty();
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, username);
+
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+
+                User user = new User();
+                user.setId(resultSet.getInt(BaseEntity.ID_SQL));
+                user.setUsername(resultSet.getString(User.USERNAME_SQL));
+                user.setPasswordHash(resultSet.getString(User.PASSWORD_HASH_SQL));
+                user.setWalletId(resultSet.getInt(User.WALLET_ID_SQL));
+
+                userOptional = Optional.of(user);
+            }
+        } finally {
+            connection.close();
+        }
+
+        return userOptional;
+    }
+
     @Override
     public void update(User user) throws SQLException {
 
         String sql = String.format("update table %s set %s = ?, %s = ?, %s = ?, %s = ? where %s = ?;",
-                getTableName(), User.NAME_SQL, User.PASSWORD_HASH_SQL,
+                getTableName(), User.USERNAME_SQL, User.PASSWORD_HASH_SQL,
                 User.EMAIL_SQL, User.WALLET_ID_SQL, BaseEntity.ID_SQL);
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setString(1, user.getName());
+            statement.setString(1, user.getUsername());
             statement.setString(2, user.getPasswordHash());
             statement.setString(3, user.getEmail());
             statement.setInt(4, user.getWalletId());
@@ -89,7 +125,7 @@ public class UserRepository extends BaseRepository<User, Integer> {
 
                 User user = new User();
                 user.setId(resultSet.getInt(BaseEntity.ID_SQL));
-                user.setName(resultSet.getString(User.NAME_SQL));
+                user.setUsername(resultSet.getString(User.USERNAME_SQL));
                 user.setPasswordHash(resultSet.getString(User.PASSWORD_HASH_SQL));
                 user.setWalletId(resultSet.getInt(User.WALLET_ID_SQL));
 

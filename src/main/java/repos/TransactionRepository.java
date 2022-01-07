@@ -3,6 +3,7 @@ package repos;
 import entities.BaseEntity;
 import entities.Transaction;
 
+import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,12 +15,20 @@ import java.util.Optional;
 
 public class TransactionRepository extends BaseRepository<Transaction, String> {
 
+    private static final class TransactionRepositoryHolder {
+        private static final TransactionRepository TRANSACTION_REPOSITORY = new TransactionRepository();
+    }
+
+    public static TransactionRepository getInstance() {
+        return TransactionRepositoryHolder.TRANSACTION_REPOSITORY;
+    }
+
     @Override
     public void create(Transaction transaction) throws SQLException {
 
-        String sql = String.format("insert into %s (%s, %s, %s, %s, %s) values (?, ?, ?, ?, ?)",
-                getTableName(), Transaction.TRANSACTION_DATE_SQL, Transaction.STATUS_SQL,
-                Transaction.TYPE_SQL, Transaction.AMOUNT_SQL, Transaction.WALLET_ID_SQL);
+        String sql = String.format("insert into %s (%s, %s, %s, %s, %s, %s) values (?, ?, ?, ?, ?, ?)",
+                getTableName(), Transaction.TRANSACTION_DATE_SQL, Transaction.STATUS_SQL, Transaction.TYPE_SQL,
+                Transaction.AMOUNT_SQL, Transaction.SENDER_WALLET_ID_SQL, Transaction.RECEIVER_WALLET_ID_SQL);
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
@@ -27,9 +36,11 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
             statement.setString(2, transaction.getStatus());
             statement.setString(3, transaction.getType());
             statement.setInt(4, transaction.getAmount());
-            statement.setInt(5, transaction.getWalletId());
+            statement.setInt(5, transaction.getSenderWalletId());
+            statement.setInt(6, transaction.getReceiverWalletId());
 
             statement.execute();
+            setCreatedId(transaction, statement);
         } finally {
             connection.close();
         }
@@ -37,7 +48,9 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
 
     @Override
     public Optional<Transaction> findById(String id) throws SQLException {
+
         String sql = String.format("select * from %s where %s = ?;", getTableName(), BaseEntity.ID_SQL);
+        Optional<Transaction> transactionOptional = Optional.empty();
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
@@ -46,19 +59,24 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
 
-                Transaction transaction = new Transaction(resultSet.getInt(Transaction.WALLET_ID_SQL));
-                transaction.setTransactionDate(Date.from(resultSet.getTimestamp(Transaction.TRANSACTION_DATE_SQL).toInstant()));
-                transaction.setStatus(resultSet.getString(Transaction.STATUS_SQL));
-                transaction.setType(resultSet.getString(Transaction.TYPE_SQL));
-                transaction.setAmount(resultSet.getInt(transaction.getAmount()));
+                Transaction transaction = new Transaction(
+                        resultSet.getString(BaseEntity.ID_SQL),
+                        Date.from(resultSet.getTimestamp(Transaction.TRANSACTION_DATE_SQL).toInstant()),
+                        resultSet.getString(Transaction.STATUS_SQL),
+                        resultSet.getString(Transaction.TYPE_SQL),
+                        resultSet.getInt(Transaction.AMOUNT_SQL),
+                        resultSet.getInt(Transaction.SENDER_WALLET_ID_SQL),
+                        resultSet.getInt(Transaction.RECEIVER_WALLET_ID_SQL)
+                );
 
-                return Optional.of(transaction);
+                transactionOptional = Optional.of(transaction);
             }
+
+            return transactionOptional;
+
         } finally {
             connection.close();
         }
-
-        return Optional.empty();
     }
 
     @Override
@@ -92,11 +110,15 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
 
-                Transaction transaction = new Transaction(resultSet.getInt(Transaction.WALLET_ID_SQL));
-                transaction.setTransactionDate(Date.from(resultSet.getTimestamp(Transaction.TRANSACTION_DATE_SQL).toInstant()));
-                transaction.setStatus(resultSet.getString(Transaction.STATUS_SQL));
-                transaction.setType(resultSet.getString(Transaction.TYPE_SQL));
-                transaction.setAmount(resultSet.getInt(transaction.getAmount()));
+                Transaction transaction = new Transaction(
+                        resultSet.getString(BaseEntity.ID_SQL),
+                        Date.from(resultSet.getTimestamp(Transaction.TRANSACTION_DATE_SQL).toInstant()),
+                        resultSet.getString(Transaction.STATUS_SQL),
+                        resultSet.getString(Transaction.TYPE_SQL),
+                        resultSet.getInt(Transaction.AMOUNT_SQL),
+                        resultSet.getInt(Transaction.SENDER_WALLET_ID_SQL),
+                        resultSet.getInt(Transaction.RECEIVER_WALLET_ID_SQL)
+                );
 
                 transactions.add(transaction);
             }
