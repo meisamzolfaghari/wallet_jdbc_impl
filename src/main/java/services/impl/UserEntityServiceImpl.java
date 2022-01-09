@@ -12,12 +12,12 @@ import services.exception.UserServiceException;
 
 import java.sql.SQLException;
 
-public class UserServiceImpl extends BaseServiceImpl<Integer, User, UserRepository> implements UserService {
+public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, UserRepository> implements UserService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserEntityServiceImpl.class);
 
     private static final class UserServiceImplHolder {
-        private static final UserServiceImpl USER_SERVICE_IMPL = new UserServiceImpl();
+        private static final UserEntityServiceImpl USER_SERVICE_IMPL = new UserEntityServiceImpl();
     }
 
     public static UserService getInstance() {

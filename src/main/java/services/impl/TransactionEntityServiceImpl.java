@@ -6,19 +6,18 @@ import org.slf4j.LoggerFactory;
 import repos.TransactionRepository;
 import services.TransactionService;
 import services.exception.TransactionServiceException;
-import services.exception.UserServiceException;
 
 import java.sql.SQLException;
 
-public class TransactionServiceImpl extends BaseServiceImpl<String, Transaction, TransactionRepository> implements TransactionService {
+public class TransactionEntityServiceImpl extends BaseEntityServiceImpl<String, Transaction, TransactionRepository> implements TransactionService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransactionEntityServiceImpl.class);
 
     private static final class TransactionServiceImplHolder {
-        private static final TransactionServiceImpl TRANSACTION_SERVICE_IMPL = new TransactionServiceImpl();
+        private static final TransactionEntityServiceImpl TRANSACTION_SERVICE_IMPL = new TransactionEntityServiceImpl();
     }
 
-    public static TransactionServiceImpl getInstance() {
+    public static TransactionEntityServiceImpl getInstance() {
         return TransactionServiceImplHolder.TRANSACTION_SERVICE_IMPL;
     }
 
@@ -32,19 +31,6 @@ public class TransactionServiceImpl extends BaseServiceImpl<String, Transaction,
             return transaction;
         } catch (SQLException e) {
             final String message = "error on creating transaction! ";
-            LOGGER.error(message, e);
-            throw new TransactionServiceException(message);
-        }
-    }
-
-    @Override
-    public Transaction getTransaction(String transactionId) throws TransactionServiceException {
-        try {
-
-            return getById(transactionId);
-
-        } catch (UserServiceException e) {
-            final String message = String.format("error on getting transaction for id: %s ", transactionId);
             LOGGER.error(message, e);
             throw new TransactionServiceException(message);
         }

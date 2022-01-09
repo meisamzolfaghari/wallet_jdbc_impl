@@ -7,6 +7,6 @@ public interface TransactionService {
 
     Transaction createTransaction(Transaction transaction) throws TransactionServiceException;
 
-    Transaction getTransaction(String transactionId) throws TransactionServiceException;
+    Transaction getById(String transactionId) throws TransactionServiceException;
 
 }

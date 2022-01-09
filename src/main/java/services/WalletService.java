@@ -1,16 +1,18 @@
 package services;
 
 import entities.Wallet;
-import entities.dto.MoneyDepositDetails;
-import entities.dto.MoneyTransferDetails;
+import services.dto.MoneyDepositWithdrawDetails;
+import services.dto.MoneyTransferDetails;
 import services.exception.WalletServiceException;
 
 public interface WalletService {
 
-    Wallet getWallet(Integer walletId) throws WalletServiceException;
+    Wallet getById(Integer walletId) throws WalletServiceException;
 
     String moneyTransferToOtherUser(MoneyTransferDetails moneyTransferDetails) throws WalletServiceException;
 
-//    String deposit(MoneyDepositDetails moneyDepositDetails) throws WalletServiceException;
+    String deposit(MoneyDepositWithdrawDetails moneyDepositWithdrawDetails) throws WalletServiceException;
+
+    String withdraw(MoneyDepositWithdrawDetails moneyDepositWithdrawDetails) throws WalletServiceException;
 
 }
