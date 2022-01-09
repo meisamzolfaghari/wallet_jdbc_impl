@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import repos.UserRepository;
 import repos.WalletRepository;
 import services.UserService;
+import services.exception.UserNotFoundException;
 import services.exception.UserServiceException;
+import services.exception.notValidUserToCreateException;
 
 import java.sql.SQLException;
 
@@ -25,9 +27,12 @@ public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, 
     }
 
     @Override
-    public UserDetails createSignUp(User user) throws UserServiceException {
+    public UserDetails createSignUp(User user) throws UserServiceException, notValidUserToCreateException {
 
         try {
+            if (user.getUsername() == null || user.getPasswordHash() == null)
+                throw new notValidUserToCreateException("username or password not provided!");
+
             getRepository().create(user);
 
             Wallet wallet = new Wallet(user.getId());
@@ -47,11 +52,11 @@ public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, 
     }
 
     @Override
-    public UserDetails getUserProfileByUsername(String userName) throws UserServiceException {
+    public UserDetails getUserProfileByUsername(String userName) throws UserServiceException, UserNotFoundException {
         try {
 
             User user = getRepository().findByUsername(userName)
-                    .orElseThrow(() -> new UserServiceException("user not found for username: " + userName));
+                    .orElseThrow(() -> new UserNotFoundException("user not found for username: " + userName));
 
             return new UserDetails(user);
 
@@ -63,7 +68,7 @@ public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, 
     }
 
     @Override
-    public User getUserDbEntityByUserName(String username) throws UserServiceException {
+    public User getUserDbEntityByUserName(String username) throws UserServiceException, UserNotFoundException {
         try {
 
             return getByUsername(username);
@@ -75,15 +80,17 @@ public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, 
         }
     }
 
-    private User getByUsername(String userName) throws SQLException {
-        return getRepository().findByUsername(userName).orElseThrow();
+    private User getByUsername(String userName) throws SQLException, UserNotFoundException {
+        return getRepository().findByUsername(userName).orElseThrow(() ->
+                new UserNotFoundException("user not found for username: " + userName));
     }
 
     @Override
-    public UserDetails updateUserProfile(UserDetails userProfile) throws UserServiceException {
+    public UserDetails updateUserProfile(UserDetails userProfile) throws UserServiceException, UserNotFoundException {
         try {
 
             User user = getByUsername(userProfile.getUserName());
+
             user.setEmail(userProfile.getEmail());
 
             getRepository().update(user);

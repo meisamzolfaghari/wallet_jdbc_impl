@@ -17,5 +17,4 @@ public abstract class BaseEntity<I> {
         return id != null;
     }
 
-    public abstract String getTableName();
 }

@@ -83,8 +83,4 @@ public class Transaction extends BaseEntity<String> {
         this.receiverWalletId = receiverWalletId;
     }
 
-    @Override
-    public String getTableName() {
-        return TABLE_NAME_SQL;
-    }
 }

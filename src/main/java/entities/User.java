@@ -16,6 +16,14 @@ public class User extends BaseEntity<Integer> {
     public static final String WALLET_ID_SQL = "walletId";
     private Integer walletId;
 
+    public User() {
+    }
+
+    public User(String username, String passwordHash, String email) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.email = email;
+    }
 
     public String getUsername() {
         return username;
