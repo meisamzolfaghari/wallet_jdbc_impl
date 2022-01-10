@@ -9,7 +9,7 @@ import java.io.IOException;
 
 // TODO: 1/10/2022 add required servlets to security filter
 
-@WebFilter(filterName = "SecurityFilter", servletNames = {})
+@WebFilter(filterName = "SecurityFilter", servletNames = {"UserProfileServlet"})
 public class SecurityFilter implements Filter {
 
     @Override
