@@ -110,6 +110,18 @@ public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, 
     }
 
     @Override
+    public User getUserByWalletId(Integer walletId) throws UserServiceException, UserNotFoundException {
+        try {
+            return getRepository().getByWalletId(walletId).orElseThrow(() ->
+                    new UserNotFoundException("user not found by walletId: " + walletId));
+        } catch (SQLException e) {
+            final String message = "error on getting user by walletId: " + walletId;
+            LOGGER.error(message, e);
+            throw new UserServiceException(message);
+        }
+    }
+
+    @Override
     protected UserRepository getRepository() {
         return UserRepository.getInstance();
     }

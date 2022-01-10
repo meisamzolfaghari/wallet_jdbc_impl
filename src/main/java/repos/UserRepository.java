@@ -16,9 +16,9 @@ public class UserRepository extends BaseRepository<User, Integer> {
     }
 
     private static final class UserRepositoryHolder {
+
         private static final UserRepository USER_REPOSITORY = new UserRepository();
     }
-
     public static UserRepository getInstance() {
         return UserRepositoryHolder.USER_REPOSITORY;
     }
@@ -92,6 +92,31 @@ public class UserRepository extends BaseRepository<User, Integer> {
         }
 
         return userOptional;
+    }
+
+    public Optional<User> getByWalletId(Integer walletId) throws SQLException {
+        String sql = String.format("select * from %s where %s = ?;", getTableName(), User.WALLET_ID_SQL);
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setObject(1, walletId);
+
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+
+                User user = new User();
+                user.setId(resultSet.getInt(BaseEntity.ID_SQL));
+                user.setUsername(resultSet.getString(User.USERNAME_SQL));
+                user.setPasswordHash(resultSet.getString(User.PASSWORD_HASH_SQL));
+                user.setWalletId(resultSet.getInt(User.WALLET_ID_SQL));
+
+                return Optional.of(user);
+            }
+        } finally {
+            connection.close();
+        }
+
+        return Optional.empty();
     }
 
     @Override

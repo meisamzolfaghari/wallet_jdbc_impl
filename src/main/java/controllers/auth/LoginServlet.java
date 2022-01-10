@@ -7,7 +7,6 @@ import services.exception.UserNotFoundException;
 import services.exception.UserServiceException;
 import services.impl.UserEntityServiceImpl;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +16,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Optional;
 
 @WebServlet(name = "LoginServlet", urlPatterns = "/auth/login")
 public class LoginServlet extends HttpServlet {
@@ -27,7 +25,7 @@ public class LoginServlet extends HttpServlet {
     // TODO: 1/10/2022 add parameter to request body instead of parameter
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         AuthUserUtils.removeUserFromCurrentSessionIfExist(req);
 

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+// TODO: 1/10/2022 try to generify repositories
 public abstract class BaseRepository<E extends BaseEntity<I>, I> {
 
     protected final Connection connection = ConnectionFactory.getConnection();
