@@ -1,21 +1,31 @@
 package controllers.auth;
 
+import controllers.AuthUserUtils;
+
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 @WebServlet(name = "LogoutServlet", urlPatterns = "/auth/logout")
 public class LogoutServlet extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
+        AuthUserUtils.removeUserFromCurrentSessionIfExist(req);
 
-        HttpSession session = req.getSession(false);
-        if (session != null)
-            session.removeAttribute("user");
+        PrintWriter writer = resp.getWriter();
+        resp.setContentType("text/html");
+
+        writer.write("<html>" +
+                "<body>"+
+                "<h2>Logout Successfully...</h2>" +
+                "</body>" +
+                "</html>");
     }
 
 }

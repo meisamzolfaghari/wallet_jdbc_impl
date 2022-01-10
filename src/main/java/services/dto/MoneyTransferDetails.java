@@ -2,34 +2,34 @@ package services.dto;
 
 public class MoneyTransferDetails {
 
-    private Integer senderWalletId;
-    private Integer receiverWalletId;
+    private String senderUsername;
+    private String receiverUsername;
 
     private Integer amount;
 
     public MoneyTransferDetails() {
     }
 
-    public MoneyTransferDetails(Integer receiverWalletId, Integer senderWalletId, Integer amount) {
-        this.receiverWalletId = receiverWalletId;
-        this.senderWalletId = senderWalletId;
+    public MoneyTransferDetails(String senderUsername, String receiverUsername, Integer amount) {
+        this.senderUsername = senderUsername;
+        this.receiverUsername = receiverUsername;
         this.amount = amount;
     }
 
-    public Integer getReceiverWalletId() {
-        return receiverWalletId;
+    public String getReceiverUsername() {
+        return receiverUsername;
     }
 
-    public void setReceiverWalletId(Integer receiverWalletId) {
-        this.receiverWalletId = receiverWalletId;
+    public void setReceiverUsername(String receiverUsername) {
+        this.receiverUsername = receiverUsername;
     }
 
-    public Integer getSenderWalletId() {
-        return senderWalletId;
+    public String getSenderUsername() {
+        return senderUsername;
     }
 
-    public void setSenderWalletId(Integer senderWalletId) {
-        this.senderWalletId = senderWalletId;
+    public void setSenderUsername(String senderUsername) {
+        this.senderUsername = senderUsername;
     }
 
     public Integer getAmount() {

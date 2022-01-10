@@ -2,20 +2,20 @@ package services.dto;
 
 public class MoneyDepositWithdrawDetails {
 
-    private Integer walletId;
+    private String username;
     private Integer amount;
 
-    public MoneyDepositWithdrawDetails(Integer walletId, Integer amount) {
-        this.walletId = walletId;
+    public MoneyDepositWithdrawDetails(String username, Integer amount) {
+        this.username = username;
         this.amount = amount;
     }
 
-    public Integer getWalletId() {
-        return walletId;
+    public String getUsername() {
+        return username;
     }
 
-    public void setWalletId(Integer walletId) {
-        this.walletId = walletId;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public Integer getAmount() {

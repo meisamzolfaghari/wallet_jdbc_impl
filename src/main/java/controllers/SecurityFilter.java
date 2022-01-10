@@ -7,9 +7,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-// TODO: 1/10/2022 add required servlets to security filter
-
-@WebFilter(filterName = "SecurityFilter", servletNames = {"UserProfileServlet"})
+@WebFilter(filterName = "SecurityFilter",
+        servletNames = {"UserProfileServlet", "DepositServlet", "TransferToOtherUserServlet"
+                , "WithdrawServlet", "WalletServlet", "TransactionServlet"}
+)
 public class SecurityFilter implements Filter {
 
     @Override
@@ -20,7 +21,7 @@ public class SecurityFilter implements Filter {
         HttpSession session = request.getSession(false);
 
         if (session != null && session.getAttribute("user") != null)
-            filterChain.doFilter(servletRequest, servletResponse);
+            filterChain.doFilter(request, response);
         else
             response.sendError(401, "Authentication failed! Login first");
     }

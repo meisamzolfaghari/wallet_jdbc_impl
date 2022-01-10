@@ -16,4 +16,6 @@ public interface UserService {
 
     UserDetails updateUserProfile(UserDetails useProfile) throws UserServiceException, UserNotFoundException;
 
+    User getUserByWalletId(Integer walletId) throws UserServiceException, UserNotFoundException;
+
 }

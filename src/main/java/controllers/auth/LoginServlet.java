@@ -1,5 +1,6 @@
 package controllers.auth;
 
+import controllers.AuthUserUtils;
 import entities.User;
 import services.UserService;
 import services.exception.UserNotFoundException;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Optional;
 
 @WebServlet(name = "LoginServlet", urlPatterns = "/auth/login")
 public class LoginServlet extends HttpServlet {
@@ -26,6 +28,8 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        AuthUserUtils.removeUserFromCurrentSessionIfExist(req);
 
         String username = req.getParameter("username");
         String password = req.getParameter("password");
@@ -41,14 +45,14 @@ public class LoginServlet extends HttpServlet {
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());
         } catch (UserNotFoundException e) {
-            resp.sendError(401, e.getMessage());
+            resp.sendError(400, e.getMessage());
         }
 
         PrintWriter writer = resp.getWriter();
         resp.setContentType("text/html");
 
         writer.write("<html>" +
-                "<body>"+
+                "<body>" +
                 "<h2>Login Successfully...</h2>" +
                 "<p> Welcome Back Dear " + username + "</p>" +
                 "</body>" +
