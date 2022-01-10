@@ -11,6 +11,9 @@ import java.sql.SQLException;
 
 public class TransactionEntityServiceImpl extends BaseEntityServiceImpl<String, Transaction, TransactionRepository> implements TransactionService {
 
+    private TransactionEntityServiceImpl() {
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TransactionEntityServiceImpl.class);
 
     private static final class TransactionServiceImplHolder {

@@ -13,22 +13,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Base64;
 
 @WebServlet(name = "LoginServlet", urlPatterns = "/auth/login")
 public class LoginServlet extends HttpServlet {
 
-    private final UserService userService = new UserEntityServiceImpl();
+    private final UserService userService = UserEntityServiceImpl.getInstance();
 
     // TODO: 1/10/2022 add parameter to request body instead of parameter
-    // TODO: 1/10/2022 add something in return of doGet method
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
         String username = req.getParameter("username");
         String password = req.getParameter("password");
-
 
         try {
             User user = userService.getUserDbEntityByUserName(username);
@@ -44,7 +44,15 @@ public class LoginServlet extends HttpServlet {
             resp.sendError(401, e.getMessage());
         }
 
-        super.doGet(req, resp);
+        PrintWriter writer = resp.getWriter();
+        resp.setContentType("text/html");
+
+        writer.write("<html>" +
+                "<body>"+
+                "<h2>Login Successfully...</h2>" +
+                "<p> Welcome Back Dear " + username + "</p>" +
+                "</body>" +
+                "</html>");
     }
 
     private void login(HttpServletRequest req, User user) {
@@ -54,6 +62,6 @@ public class LoginServlet extends HttpServlet {
     }
 
     private boolean checkAccess(User user, String password) {
-        return new String(Base64.getDecoder().decode(user.getPasswordHash())).equals(password);
+        return Arrays.toString(Base64.getDecoder().decode(user.getPasswordHash())).equals(password);
     }
 }

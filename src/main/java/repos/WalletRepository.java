@@ -13,6 +13,9 @@ import java.util.Optional;
 
 public class WalletRepository extends BaseRepository<Wallet, Integer> {
 
+    private WalletRepository() {
+    }
+
     private static final class WalletRepositoryHolder {
         private static final WalletRepository WALLET_REPOSITORY = new WalletRepository();
     }

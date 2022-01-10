@@ -2,7 +2,6 @@ package repos;
 
 import entities.BaseEntity;
 import entities.User;
-import entities.dto.UserDetails;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserRepository extends BaseRepository<User, Integer> {
+
+    private UserRepository() {
+    }
 
     private static final class UserRepositoryHolder {
         private static final UserRepository USER_REPOSITORY = new UserRepository();

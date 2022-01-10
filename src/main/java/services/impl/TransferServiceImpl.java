@@ -14,6 +14,8 @@ import java.sql.SQLException;
 
 public class TransferServiceImpl implements TransferService {
 
+    private TransferServiceImpl() {}
+
     private static final Logger LOGGER = LoggerFactory.getLogger(TransferServiceImpl.class);
 
     private static final class TransferServiceImplHolder {

@@ -18,6 +18,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class WalletEntityServiceImpl extends BaseEntityServiceImpl<Integer, Wallet, WalletRepository> implements WalletService {
 
+    private WalletEntityServiceImpl() {
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(WalletEntityServiceImpl.class);
 
     private static final class WalletServiceImplHolder {

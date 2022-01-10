@@ -17,7 +17,7 @@ import java.util.Base64;
 @WebServlet(name = "RegisterServlet", urlPatterns = "/auth/register")
 public class RegisterServlet extends HttpServlet {
 
-    private final UserService userService = new UserEntityServiceImpl();
+    private final UserService userService = UserEntityServiceImpl.getInstance();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {

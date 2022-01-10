@@ -18,6 +18,9 @@ public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserEntityServiceImpl.class);
 
+    private UserEntityServiceImpl() {
+    }
+
     private static final class UserServiceImplHolder {
         private static final UserEntityServiceImpl USER_SERVICE_IMPL = new UserEntityServiceImpl();
     }

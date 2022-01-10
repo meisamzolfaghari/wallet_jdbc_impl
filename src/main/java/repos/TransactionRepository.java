@@ -3,7 +3,6 @@ package repos;
 import entities.BaseEntity;
 import entities.Transaction;
 
-import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +13,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class TransactionRepository extends BaseRepository<Transaction, String> {
+
+    private TransactionRepository() {}
 
     private static final class TransactionRepositoryHolder {
         private static final TransactionRepository TRANSACTION_REPOSITORY = new TransactionRepository();
