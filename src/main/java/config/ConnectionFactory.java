@@ -10,6 +10,8 @@ public class ConnectionFactory {
     public static final String USERNAME = "root";
     public static final String PASSWORD = "root";
 
+    private ConnectionFactory() {}
+
     public static Connection getConnection() {
         try {
             Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
