@@ -43,7 +43,7 @@ public class LoginServlet extends HttpServlet {
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());
         } catch (EntityNotFoundException e) {
-            resp.sendError(400, e.getMessage());
+            resp.sendError(406, e.getMessage());
         }
 
         PrintWriter writer = resp.getWriter();
