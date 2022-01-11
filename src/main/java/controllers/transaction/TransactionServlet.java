@@ -5,8 +5,8 @@ import entities.Transaction;
 import entities.User;
 import services.TransactionService;
 import services.UserService;
+import services.exception.EntityNotFoundException;
 import services.exception.TransactionServiceException;
-import services.exception.UserNotFoundException;
 import services.exception.UserServiceException;
 import services.impl.TransactionEntityServiceImpl;
 import services.impl.UserEntityServiceImpl;
@@ -50,8 +50,8 @@ public class TransactionServlet extends HttpServlet {
             }
 
             // TODO: 1/10/2022 this part can be better (maybe separate deposit and withdraw table and entity)
-            String senderUsername = getSenderUsername(transaction);
-            String receiverUsername = getReceiverUsername(transaction);
+            String senderUsername = getUsernameByWalletId(transaction.getSenderWalletId());
+            String receiverUsername = getUsernameByWalletId(transaction.getReceiverWalletId());
 
             // TODO: 1/10/2022 change them all and create related html pages. not here! 
             PrintWriter writer = resp.getWriter();
@@ -71,25 +71,16 @@ public class TransactionServlet extends HttpServlet {
 
         } catch (TransactionServiceException | UserServiceException e) {
             resp.sendError(504, e.getMessage());
+        } catch (EntityNotFoundException e) {
+            resp.sendError(406, e.getMessage());
         }
     }
 
-    private String getReceiverUsername(Transaction transaction) throws UserServiceException {
-        if (transaction.getReceiverWalletId() != null) {
+    private String getUsernameByWalletId(Long walletId) throws UserServiceException {
+        if (walletId != null) {
             try {
-                return userService.getUserByWalletId(transaction.getReceiverWalletId()).getUsername();
-            } catch (UserNotFoundException e) {
-                return "-";
-            }
-        }
-        return "-";
-    }
-
-    private String getSenderUsername(Transaction transaction) throws UserServiceException {
-        if (transaction.getSenderWalletId() != null) {
-            try {
-                return userService.getUserByWalletId(transaction.getReceiverWalletId()).getUsername();
-            } catch (UserNotFoundException e) {
+                return userService.getUserByWalletId(walletId).getUsername();
+            } catch (EntityNotFoundException e) {
                 return "-";
             }
         }

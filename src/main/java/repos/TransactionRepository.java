@@ -1,12 +1,10 @@
 package repos;
 
+import config.ConnectionFactory;
 import entities.BaseEntity;
 import entities.Transaction;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,7 +12,8 @@ import java.util.Optional;
 
 public class TransactionRepository extends BaseRepository<Transaction, String> {
 
-    private TransactionRepository() {}
+    private TransactionRepository() {
+    }
 
     private static final class TransactionRepositoryHolder {
         private static final TransactionRepository TRANSACTION_REPOSITORY = new TransactionRepository();
@@ -25,30 +24,29 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
     }
 
     @Override
-    public void create(Transaction transaction) throws SQLException {
+    public void create(Transaction transaction, Connection connection) throws SQLException {
 
-        String sql = String.format("insert into %s (%s, %s, %s, %s, %s, %s) values (?, ?, ?, ?, ?, ?)",
-                getTableName(), Transaction.TRANSACTION_DATE_SQL, Transaction.STATUS_SQL, Transaction.TYPE_SQL,
-                Transaction.AMOUNT_SQL, Transaction.SENDER_WALLET_ID_SQL, Transaction.RECEIVER_WALLET_ID_SQL);
+        String sql = String.format("insert into %s (%s, %s, %s, %s, %s, %s, %s) values (?, ?, ?, ?, ?, ?, ?)",
+                getTableName(), BaseEntity.ID_SQL, Transaction.TRANSACTION_DATE_SQL, Transaction.STATUS_SQL,
+                Transaction.TYPE_SQL, Transaction.AMOUNT_SQL, Transaction.SENDER_WALLET_ID_SQL,
+                Transaction.RECEIVER_WALLET_ID_SQL);
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            statement.setTimestamp(1, Timestamp.from(transaction.getTransactionDate().toInstant()));
-            statement.setString(2, transaction.getStatus());
-            statement.setString(3, transaction.getType());
-            statement.setInt(4, transaction.getAmount());
-            statement.setInt(5, transaction.getSenderWalletId());
-            statement.setInt(6, transaction.getReceiverWalletId());
+            statement.setString(1, transaction.getId());
+            statement.setTimestamp(2, Timestamp.from(transaction.getTransactionDate().toInstant()));
+            statement.setString(3, transaction.getStatus());
+            statement.setString(4, transaction.getType());
+            statement.setInt(5, transaction.getAmount());
+            statement.setObject(6, transaction.getSenderWalletId(), Types.BIGINT);
+            statement.setObject(7, transaction.getReceiverWalletId(), Types.BIGINT);
 
-            statement.execute();
-            setCreatedId(transaction, statement);
-        } finally {
-            connection.close();
+            statement.executeUpdate();
         }
     }
 
     @Override
-    public Optional<Transaction> findById(String id) throws SQLException {
+    public Optional<Transaction> findById(String id, Connection connection) throws SQLException {
 
         String sql = String.format("select * from %s where %s = ?;", getTableName(), BaseEntity.ID_SQL);
         Optional<Transaction> transactionOptional = Optional.empty();
@@ -66,8 +64,8 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
                         resultSet.getString(Transaction.STATUS_SQL),
                         resultSet.getString(Transaction.TYPE_SQL),
                         resultSet.getInt(Transaction.AMOUNT_SQL),
-                        resultSet.getInt(Transaction.SENDER_WALLET_ID_SQL),
-                        resultSet.getInt(Transaction.RECEIVER_WALLET_ID_SQL)
+                        resultSet.getLong(Transaction.SENDER_WALLET_ID_SQL),
+                        resultSet.getLong(Transaction.RECEIVER_WALLET_ID_SQL)
                 );
 
                 transactionOptional = Optional.of(transaction);
@@ -75,13 +73,11 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
 
             return transactionOptional;
 
-        } finally {
-            connection.close();
         }
     }
 
     @Override
-    public void update(Transaction transaction) throws SQLException {
+    public void update(Transaction transaction, Connection connection) throws SQLException {
 
         String sql = String.format("update table %s set %s = ?, %s = ?, %s = ?, %s = ? where %s = ?;",
                 getTableName(), Transaction.TRANSACTION_DATE_SQL, Transaction.STATUS_SQL,
@@ -96,13 +92,11 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
             statement.setString(5, transaction.getId());
 
             statement.execute();
-        } finally {
-            connection.close();
         }
     }
 
     @Override
-    public List<Transaction> findAll() throws SQLException {
+    public List<Transaction> findAll(Connection connection) throws SQLException {
         String sql = String.format("select * from %s;", getTableName());
         List<Transaction> transactions = new ArrayList<>();
 
@@ -117,14 +111,12 @@ public class TransactionRepository extends BaseRepository<Transaction, String> {
                         resultSet.getString(Transaction.STATUS_SQL),
                         resultSet.getString(Transaction.TYPE_SQL),
                         resultSet.getInt(Transaction.AMOUNT_SQL),
-                        resultSet.getInt(Transaction.SENDER_WALLET_ID_SQL),
-                        resultSet.getInt(Transaction.RECEIVER_WALLET_ID_SQL)
+                        resultSet.getLong(Transaction.SENDER_WALLET_ID_SQL),
+                        resultSet.getLong(Transaction.RECEIVER_WALLET_ID_SQL)
                 );
 
                 transactions.add(transaction);
             }
-        } finally {
-            connection.close();
         }
 
         return transactions;

@@ -2,19 +2,17 @@ use test_db;
 
 create table users
 (
-    id           bigint primary key,
+    id           bigint primary key auto_increment,
     username     varchar(255),
     passwordHash varchar(255),
     email        varchar(255),
-    walletId     bigint unique
+    walletId     bigint unique not null
 );
 
 create table wallets
 (
-    id     bigint primary key,
-    amount int,
-    userId bigint,
-    constraint foreign key (userId) references users (id)
+    id      bigint primary key auto_increment,
+    balance int
 );
 
 alter table users

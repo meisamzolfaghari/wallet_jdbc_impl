@@ -8,7 +8,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 @WebFilter(filterName = "SecurityFilter",
-        servletNames = {"UserProfileServlet", "DepositServlet", "TransferToOtherUserServlet"
+        servletNames = {"UserServlet", "DepositServlet", "TransferToOtherUserServlet"
                 , "WithdrawServlet", "WalletServlet", "TransactionServlet"}
 )
 public class SecurityFilter implements Filter {
@@ -24,5 +24,10 @@ public class SecurityFilter implements Filter {
             filterChain.doFilter(request, response);
         else
             response.sendError(401, "Authentication failed! Login first");
+    }
+
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
     }
 }

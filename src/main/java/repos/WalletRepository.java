@@ -4,14 +4,12 @@ import entities.BaseEntity;
 import entities.User;
 import entities.Wallet;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class WalletRepository extends BaseRepository<Wallet, Integer> {
+public class WalletRepository extends BaseRepository<Wallet, Long> {
 
     private WalletRepository() {
     }
@@ -25,48 +23,47 @@ public class WalletRepository extends BaseRepository<Wallet, Integer> {
     }
 
     @Override
-    public void create(Wallet wallet) throws SQLException {
+    public void create(Wallet wallet, Connection connection) throws SQLException {
 
-        String sql = String.format("insert into %s (%s, %s) values (?, ?)",
-                getTableName(), Wallet.BALANCE_SQL, Wallet.USER_ID_SQL);
+        String sql = String.format("insert into %s (%s) values (?)",
+                getTableName(), Wallet.BALANCE_SQL);
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             statement.setInt(1, wallet.getBalance());
-            statement.setInt(2, wallet.getUserId());
 
-            statement.execute();
-            setCreatedId(wallet, statement);
-        } finally {
-            connection.close();
+            statement.executeUpdate();
+            ResultSet generatedKeys = statement.getGeneratedKeys();
+            if (generatedKeys.next())
+                wallet.setId(generatedKeys.getLong(1));
+            else throw new SQLException("Creating entity failed, no ID obtained!");
         }
     }
 
     @Override
-    public Optional<Wallet> findById(Integer id) throws SQLException {
+    public Optional<Wallet> findById(Long id, Connection connection) throws SQLException {
         String sql = String.format("select * from %s where %s = ?;", getTableName(), BaseEntity.ID_SQL);
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setObject(1, id);
+            statement.setLong(1, id);
 
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
 
-                Wallet wallet = new Wallet(resultSet.getInt(Wallet.USER_ID_SQL));
+                Wallet wallet = new Wallet();
+                wallet.setId(resultSet.getLong(BaseEntity.ID_SQL));
                 wallet.setBalance(resultSet.getInt(Wallet.BALANCE_SQL));
 
                 return Optional.of(wallet);
             }
-        } finally {
-            connection.close();
         }
 
         return Optional.empty();
     }
 
     @Override
-    public void update(Wallet wallet) throws SQLException {
+    public void update(Wallet wallet, Connection connection) throws SQLException {
 
         String sql = String.format("update table %s set %s = ? where %s = ?;",
                 getTableName(), Wallet.BALANCE_SQL, BaseEntity.ID_SQL);
@@ -74,16 +71,14 @@ public class WalletRepository extends BaseRepository<Wallet, Integer> {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, wallet.getBalance());
-            statement.setInt(2, wallet.getId());
+            statement.setLong(2, wallet.getId());
 
             statement.execute();
-        } finally {
-            connection.close();
         }
     }
 
     @Override
-    public List<Wallet> findAll() throws SQLException {
+    public List<Wallet> findAll(Connection connection) throws SQLException {
         String sql = String.format("select * from %s;", getTableName());
         List<Wallet> wallets = new ArrayList<>();
 
@@ -92,13 +87,12 @@ public class WalletRepository extends BaseRepository<Wallet, Integer> {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
 
-                Wallet wallet = new Wallet(resultSet.getInt(Wallet.USER_ID_SQL));
+                Wallet wallet = new Wallet();
+                wallet.setId(resultSet.getLong(BaseEntity.ID_SQL));
                 wallet.setBalance(resultSet.getInt(Wallet.BALANCE_SQL));
 
                 wallets.add(wallet);
             }
-        } finally {
-            connection.close();
         }
 
         return wallets;
@@ -106,6 +100,6 @@ public class WalletRepository extends BaseRepository<Wallet, Integer> {
 
     @Override
     protected String getTableName() {
-        return User.TABLE_NAME_SQL;
+        return Wallet.TABLE_NAME_SQL;
     }
 }

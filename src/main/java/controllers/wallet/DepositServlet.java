@@ -4,7 +4,7 @@ import controllers.AuthUserUtils;
 import entities.User;
 import services.WalletService;
 import services.dto.MoneyDepositWithdrawDetails;
-import services.exception.UserNotFoundException;
+import services.exception.EntityNotFoundException;
 import services.exception.WalletServiceException;
 import services.impl.WalletEntityServiceImpl;
 
@@ -49,7 +49,7 @@ public class DepositServlet extends HttpServlet {
                     "</body>" +
                     "</html>");
 
-        } catch (UserNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             resp.sendError(406, e.getMessage());
         } catch (WalletServiceException e) {
             resp.sendError(504, e.getMessage());

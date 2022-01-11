@@ -1,22 +1,23 @@
 package services.impl;
 
+import config.ConnectionFactory;
 import entities.Transaction;
 import entities.TransactionStatus;
 import entities.Wallet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import repos.TransactionRepository;
+import repos.WalletRepository;
 import services.TransferService;
+import services.exception.EntityNotFoundException;
 import services.exception.TransferServiceException;
 import services.exception.WalletServiceException;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class TransferServiceImpl implements TransferService {
 
-    private TransferServiceImpl() {}
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransferServiceImpl.class);
+    private TransferServiceImpl() {
+    }
 
     private static final class TransferServiceImplHolder {
         private static final TransferServiceImpl TRANSFER_SERVICE_IMPL = new TransferServiceImpl();
@@ -26,15 +27,16 @@ public class TransferServiceImpl implements TransferService {
         return TransferServiceImplHolder.TRANSFER_SERVICE_IMPL;
     }
 
-    private final WalletEntityServiceImpl walletService = WalletEntityServiceImpl.getInstance();
+    private final WalletRepository walletRepository = WalletRepository.getInstance();
     private final TransactionRepository transactionRepository = TransactionRepository.getInstance();
 
     @Override
     public void transferMoney(Transaction transaction) throws TransferServiceException {
-        try {
 
-            Wallet senderWallet = walletService.getById(transaction.getSenderWalletId());
-            Wallet receiverWallet = walletService.getById(transaction.getReceiverWalletId());
+        try (Connection connection = ConnectionFactory.getConnection()) {
+
+            Wallet senderWallet = getWalletById(transaction.getSenderWalletId(), connection);
+            Wallet receiverWallet = getWalletById(transaction.getReceiverWalletId(), connection);
 
             if (senderWallet.getBalance() < transaction.getAmount())
                 throw new WalletServiceException(String.format("sender wallet: %s does not have " +
@@ -44,17 +46,19 @@ public class TransferServiceImpl implements TransferService {
             senderWallet.setBalance(senderWallet.getBalance() - transaction.getAmount());
             receiverWallet.setBalance(receiverWallet.getBalance() + transaction.getAmount());
 
-            walletService.getRepository().update(senderWallet);
-            walletService.getRepository().update(receiverWallet);
+            walletRepository.update(senderWallet, connection);
+            walletRepository.update(receiverWallet, connection);
 
-            successTransaction(transaction);
+            successTransaction(transaction, connection);
+
+            connection.commit();
 
         } catch (Exception exception) {
             final String message = String.format("error on transferring money! " +
                             "{sender wallet: %s, receiver wallet: %s, amount: %s} ",
                     transaction.getSenderWalletId(), transaction.getReceiverWalletId(), transaction.getAmount());
 
-            LOGGER.error(message, exception);
+            exception.printStackTrace();
 
             failTransaction(transaction);
 
@@ -62,23 +66,31 @@ public class TransferServiceImpl implements TransferService {
         }
     }
 
+    private Wallet getWalletById(Long walletId, Connection connection) throws EntityNotFoundException, SQLException {
+        return walletRepository.findById(walletId, connection)
+                .orElseThrow(() -> new EntityNotFoundException("wallet not found for id: " + walletId));
+    }
+
     @Override
     public void depositMoney(Transaction transaction) throws TransferServiceException {
 
-        try {
+        try (Connection connection = ConnectionFactory.getConnection()) {
 
-            Wallet wallet = walletService.getById(transaction.getReceiverWalletId());
+            Wallet wallet = getWalletById(transaction.getReceiverWalletId(), connection);
 
             wallet.setBalance(wallet.getBalance() + transaction.getAmount());
 
-            walletService.getRepository().update(wallet);
+            walletRepository.update(wallet, connection);
 
-            successTransaction(transaction);
+            successTransaction(transaction, connection);
+
+            connection.commit();
+
         } catch (Exception exception) {
             final String message = String.format("error on deposit money! {receiver wallet: %s, amount: %s} ",
                     transaction.getReceiverWalletId(), transaction.getAmount());
 
-            LOGGER.error(message, exception);
+            exception.printStackTrace();
 
             failTransaction(transaction);
 
@@ -89,9 +101,10 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     public void withdrawMoney(Transaction transaction) throws TransferServiceException {
-        try {
 
-            Wallet wallet = walletService.getById(transaction.getSenderWalletId());
+        try (Connection connection = ConnectionFactory.getConnection()) {
+
+            Wallet wallet = getWalletById(transaction.getSenderWalletId(), connection);
 
             if (wallet.getBalance() < transaction.getAmount())
                 throw new TransferServiceException(String.format("wallet: %s does not have " +
@@ -100,16 +113,16 @@ public class TransferServiceImpl implements TransferService {
 
             wallet.setBalance(wallet.getBalance() - transaction.getAmount());
 
-            walletService.getRepository().update(wallet);
+            walletRepository.update(wallet, connection);
 
-            successTransaction(transaction);
+            successTransaction(transaction, connection);
 
         } catch (Exception exception) {
             final String message = String.format("error on transferring money! " +
                             "{sender wallet: %s, receiver wallet: %s, amount: %s} ",
                     transaction.getSenderWalletId(), transaction.getReceiverWalletId(), transaction.getAmount());
 
-            LOGGER.error(message, exception);
+            exception.printStackTrace();
 
             failTransaction(transaction);
 
@@ -117,19 +130,22 @@ public class TransferServiceImpl implements TransferService {
         }
     }
 
-    private void successTransaction(Transaction transaction) throws SQLException {
+    private void successTransaction(Transaction transaction, Connection connection) throws SQLException {
         transaction.setStatus(TransactionStatus.SUCCESS.name());
-        transactionRepository.update(transaction);
-        transactionRepository.getConnection().commit();
+        transactionRepository.update(transaction, connection);
     }
 
     private void failTransaction(Transaction transaction) {
-        try {
+
+        try (Connection connection = ConnectionFactory.getConnection()) {
+
             transaction.setStatus(TransactionStatus.FAILED.name());
-            transactionRepository.update(transaction);
-            transactionRepository.getConnection().commit();
+            transactionRepository.update(transaction, connection);
+            connection.commit();
+
         } catch (SQLException exception) {
-            LOGGER.error("error on failing transaction with id: {}", transaction.getId(), exception);
+            exception.printStackTrace();
+            System.out.printf("error on failing transaction with id: %s", transaction.getId());
         }
     }
 }

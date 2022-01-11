@@ -4,7 +4,7 @@ import controllers.AuthUserUtils;
 import entities.User;
 import entities.dto.UserDetails;
 import services.UserService;
-import services.exception.UserNotFoundException;
+import services.exception.EntityNotFoundException;
 import services.exception.UserServiceException;
 import services.impl.UserEntityServiceImpl;
 
@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Optional;
 
-@WebServlet(name = "UserProfileServlet", urlPatterns = "/user/update-profile")
-public class UserProfileServlet extends HttpServlet {
+@WebServlet(name = "UserServlet", urlPatterns = "/user")
+public class UserServlet extends HttpServlet {
 
     private final UserService userService = UserEntityServiceImpl.getInstance();
 
@@ -41,7 +41,7 @@ public class UserProfileServlet extends HttpServlet {
 
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());
-        } catch (UserNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             resp.sendError(406, e.getMessage());
         }
     }
@@ -63,7 +63,7 @@ public class UserProfileServlet extends HttpServlet {
             showUserProfileHtml(resp, userDetails);
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());
-        } catch (UserNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             resp.sendError(403, e.getMessage());
         }
     }

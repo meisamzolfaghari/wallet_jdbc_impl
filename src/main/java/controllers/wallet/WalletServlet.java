@@ -4,6 +4,7 @@ import controllers.AuthUserUtils;
 import entities.User;
 import entities.Wallet;
 import services.WalletService;
+import services.exception.EntityNotFoundException;
 import services.exception.WalletServiceException;
 import services.impl.WalletEntityServiceImpl;
 
@@ -48,6 +49,8 @@ public class WalletServlet extends HttpServlet {
                     "</html>");
         } catch (WalletServiceException e) {
             resp.sendError(504, e.getMessage());
+        } catch (EntityNotFoundException e) {
+            resp.sendError(406, e.getMessage());
         }
 
     }

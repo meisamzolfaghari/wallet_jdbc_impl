@@ -1,6 +1,8 @@
 package entities;
 
-public class User extends BaseEntity<Integer> {
+import java.io.Serializable;
+
+public class User extends BaseEntity<Long> implements Serializable {
 
     public static final String TABLE_NAME_SQL = "users";
 
@@ -14,7 +16,7 @@ public class User extends BaseEntity<Integer> {
     private String email;
 
     public static final String WALLET_ID_SQL = "walletId";
-    private Integer walletId;
+    private Long walletId;
 
     public User() {
     }
@@ -49,11 +51,11 @@ public class User extends BaseEntity<Integer> {
         this.email = email;
     }
 
-    public Integer getWalletId() {
+    public Long getWalletId() {
         return walletId;
     }
 
-    public void setWalletId(Integer walletId) {
+    public void setWalletId(Long walletId) {
         this.walletId = walletId;
     }
 }

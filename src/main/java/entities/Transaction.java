@@ -19,13 +19,13 @@ public class Transaction extends BaseEntity<String> {
     private Integer amount;
 
     public static final String SENDER_WALLET_ID_SQL = "senderWalletId";
-    private Integer senderWalletId;
+    private Long senderWalletId;
 
     public static final String RECEIVER_WALLET_ID_SQL = "receiverWalletId";
-    private Integer receiverWalletId;
+    private Long receiverWalletId;
 
     public Transaction(String id, Date transactionDate, String status, String type,
-                       Integer amount, Integer senderWalletId, Integer receiverWalletId) {
+                       Integer amount, Long senderWalletId, Long receiverWalletId) {
         this.id = id;
         this.transactionDate = transactionDate;
         this.status = status;
@@ -67,19 +67,19 @@ public class Transaction extends BaseEntity<String> {
         this.amount = amount;
     }
 
-    public Integer getSenderWalletId() {
+    public Long getSenderWalletId() {
         return senderWalletId;
     }
 
-    public void setSenderWalletId(Integer senderWalletId) {
+    public void setSenderWalletId(Long senderWalletId) {
         this.senderWalletId = senderWalletId;
     }
 
-    public Integer getReceiverWalletId() {
+    public Long getReceiverWalletId() {
         return receiverWalletId;
     }
 
-    public void setReceiverWalletId(Integer receiverWalletId) {
+    public void setReceiverWalletId(Long receiverWalletId) {
         this.receiverWalletId = receiverWalletId;
     }
 

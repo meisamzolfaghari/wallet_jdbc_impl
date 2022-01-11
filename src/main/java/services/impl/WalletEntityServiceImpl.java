@@ -1,28 +1,32 @@
 package services.impl;
 
-import entities.*;
-import services.dto.MoneyDepositWithdrawDetails;
-import services.dto.MoneyTransferDetails;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import config.ConnectionFactory;
+import entities.Transaction;
+import entities.TransactionStatus;
+import entities.TransactionType;
+import entities.Wallet;
 import repos.TransactionRepository;
 import repos.UserRepository;
 import repos.WalletRepository;
 import services.WalletService;
-import services.exception.UserNotFoundException;
+import services.dto.MoneyDepositWithdrawDetails;
+import services.dto.MoneyTransferDetails;
+import services.exception.EntityNotFoundException;
 import services.exception.WalletServiceException;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class WalletEntityServiceImpl extends BaseEntityServiceImpl<Integer, Wallet, WalletRepository> implements WalletService {
+public class WalletEntityServiceImpl extends BaseEntityServiceImpl<Long, Wallet, WalletRepository> implements WalletService {
 
     private WalletEntityServiceImpl() {
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WalletEntityServiceImpl.class);
+    private final UserRepository userRepository = UserRepository.getInstance();
+    private final TransactionRepository transactionRepository = TransactionRepository.getInstance();
 
     private static final class WalletServiceImplHolder {
         private static final WalletEntityServiceImpl WALLET_SERVICE_IMPL = new WalletEntityServiceImpl();
@@ -33,116 +37,142 @@ public class WalletEntityServiceImpl extends BaseEntityServiceImpl<Integer, Wall
     }
 
 
-    private Wallet getUserWalletByUsername(String username) throws SQLException, UserNotFoundException {
-        Integer walletId = UserRepository.getInstance()
-                .findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("user not found for username: " + username))
+    private Wallet getUserWalletByUsername(String username, Connection connection) throws SQLException, EntityNotFoundException {
+        if (connection == null)
+            connection = ConnectionFactory.getConnection();
+
+        Long walletId = userRepository.findByUsername(username, connection)
+                .orElseThrow(() -> new EntityNotFoundException("user not found for username: " + username))
                 .getWalletId();
-        return getById(walletId);
+
+        return getRepository().findById(walletId, connection)
+                .orElseThrow(() -> new EntityNotFoundException("wallet not found for id: " + walletId));
     }
 
     @Override
-    public String moneyTransferToOtherUser(MoneyTransferDetails moneyTransferDetails) throws WalletServiceException, UserNotFoundException {
-        try {
+    public Wallet getById(Long walletId) throws WalletServiceException, EntityNotFoundException {
 
-            Wallet senderWallet = getUserWalletByUsername(moneyTransferDetails.getSenderUsername());
+        try (Connection connection = ConnectionFactory.getConnection()) {
 
-            Wallet receiverWallet = getUserWalletByUsername(moneyTransferDetails.getReceiverUsername());
+            return getRepository().findById(walletId, connection).orElseThrow(() ->
+                    new EntityNotFoundException("wallet not found with id: " + walletId));
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new WalletServiceException("error on getting wallet for id: " + walletId);
+        }
+    }
+
+    @Override
+    public String moneyTransferToOtherUser(MoneyTransferDetails moneyTransferDetails) throws WalletServiceException, EntityNotFoundException {
+
+        try (Connection connection = ConnectionFactory.getConnection()) {
+
+            Wallet senderWallet = getUserWalletByUsername(moneyTransferDetails.getSenderUsername(), connection);
+
+            Wallet receiverWallet = getUserWalletByUsername(moneyTransferDetails.getReceiverUsername(), connection);
 
             Transaction transaction = new Transaction(UUID.randomUUID().toString(), new Date(),
                     TransactionStatus.NEW.name(), TransactionType.USER_TO_USER.name(),
                     moneyTransferDetails.getAmount(), senderWallet.getId(), receiverWallet.getId());
 
-            TransactionRepository.getInstance().create(transaction);
+            transactionRepository.create(transaction, connection);
 
-            getRepository().getConnection().commit();
+            connection.commit();
 
             CompletableFuture.runAsync(() ->
             {
                 try {
                     TransferServiceImpl.getInstance().transferMoney(transaction);
                 } catch (Exception e) {
-                    LOGGER.error("error on transferring money! ", e);
+                    System.out.println("error on transferring money! ");
+                    e.printStackTrace();
                 }
             });
 
             return transaction.getId();
 
         } catch (SQLException e) {
+            e.printStackTrace();
+
             final String message = String.format("error on creating transfer transaction {receiver: %s, sender: %s, amount: %s}",
                     moneyTransferDetails.getReceiverUsername(), moneyTransferDetails.getSenderUsername(),
                     moneyTransferDetails.getAmount());
-            LOGGER.error(message, e);
             throw new WalletServiceException(message);
         }
     }
 
     @Override
     public String deposit(MoneyDepositWithdrawDetails moneyDepositWithdrawDetails)
-            throws WalletServiceException, UserNotFoundException {
+            throws WalletServiceException, EntityNotFoundException {
 
         try {
+            Connection connection = ConnectionFactory.getConnection();
 
-            Wallet wallet = getUserWalletByUsername(moneyDepositWithdrawDetails.getUsername());
+            Wallet wallet = getUserWalletByUsername(moneyDepositWithdrawDetails.getUsername(), connection);
 
             Transaction transaction = new Transaction(UUID.randomUUID().toString(), new Date(),
                     TransactionStatus.NEW.name(), TransactionType.DEPOSIT.name(),
-                    moneyDepositWithdrawDetails.getAmount(), wallet.getId(), null);
+                    moneyDepositWithdrawDetails.getAmount(), null, wallet.getId());
 
-            TransactionRepository.getInstance().create(transaction);
+            transactionRepository.create(transaction, connection);
 
-            getRepository().getConnection().commit();
+            connection.commit();
 
             CompletableFuture.runAsync(() ->
             {
                 try {
                     TransferServiceImpl.getInstance().depositMoney(transaction);
                 } catch (Exception e) {
-                    LOGGER.error("error on deposit money! ", e);
+                    System.out.println("error on deposit money! ");
+                    e.printStackTrace();
                 }
             });
 
             return transaction.getId();
 
         } catch (SQLException e) {
+            e.printStackTrace();
+
             final String message = String.format("error on creating deposit transaction {receiver: %s, amount: %s}",
                     moneyDepositWithdrawDetails.getUsername(), moneyDepositWithdrawDetails.getAmount());
-            LOGGER.error(message, e);
             throw new WalletServiceException(message);
         }
     }
 
     @Override
     public String withdraw(MoneyDepositWithdrawDetails moneyDepositWithdrawDetails)
-            throws WalletServiceException, UserNotFoundException {
+            throws WalletServiceException, EntityNotFoundException {
 
         try {
+            Connection connection = ConnectionFactory.getConnection();
 
-            Wallet wallet = getUserWalletByUsername(moneyDepositWithdrawDetails.getUsername());
+            Wallet wallet = getUserWalletByUsername(moneyDepositWithdrawDetails.getUsername(), connection);
 
             Transaction transaction = new Transaction(UUID.randomUUID().toString(), new Date(),
                     TransactionStatus.NEW.name(), TransactionType.WITHDRAW.name(),
                     moneyDepositWithdrawDetails.getAmount(), wallet.getId(), null);
 
-            TransactionRepository.getInstance().create(transaction);
+            transactionRepository.create(transaction, connection);
 
-            getRepository().getConnection().commit();
+            connection.commit();
 
             CompletableFuture.runAsync(() ->
             {
                 try {
                     TransferServiceImpl.getInstance().withdrawMoney(transaction);
                 } catch (Exception e) {
-                    LOGGER.error("error on withdraw money! ", e);
+                    System.out.println("error on withdraw money! ");
+                    e.printStackTrace();
                 }
             });
 
             return transaction.getId();
 
         } catch (SQLException e) {
+            e.printStackTrace();
             final String message = String.format("error on creating withdraw transaction {sender: %s, amount: %s}",
                     moneyDepositWithdrawDetails.getUsername(), moneyDepositWithdrawDetails.getAmount());
-            LOGGER.error(message, e);
             throw new WalletServiceException(message);
         }
     }

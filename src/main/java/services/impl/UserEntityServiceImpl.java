@@ -1,22 +1,20 @@
 package services.impl;
 
+import config.ConnectionFactory;
 import entities.User;
 import entities.Wallet;
 import entities.dto.UserDetails;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import repos.UserRepository;
 import repos.WalletRepository;
 import services.UserService;
-import services.exception.UserNotFoundException;
+import services.exception.EntityNotFoundException;
 import services.exception.UserServiceException;
 import services.exception.notValidUserToCreateException;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
-public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, UserRepository> implements UserService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserEntityServiceImpl.class);
+public class UserEntityServiceImpl extends BaseEntityServiceImpl<Long, User, UserRepository> implements UserService {
 
     private UserEntityServiceImpl() {
     }
@@ -32,92 +30,87 @@ public class UserEntityServiceImpl extends BaseEntityServiceImpl<Integer, User, 
     @Override
     public UserDetails createSignUp(User user) throws UserServiceException, notValidUserToCreateException {
 
-        try {
+        try (Connection connection = ConnectionFactory.getConnection()) {
+
             if (user.getUsername() == null || user.getPasswordHash() == null)
                 throw new notValidUserToCreateException("username or password not provided!");
 
-            getRepository().create(user);
-
-            Wallet wallet = new Wallet(user.getId());
-            WalletRepository.getInstance().create(wallet);
+            Wallet wallet = new Wallet();
+            WalletRepository.getInstance().create(wallet, connection);
 
             user.setWalletId(wallet.getId());
-            getRepository().update(user);
+            getRepository().create(user, connection);
 
-            getRepository().getConnection().commit();
+            connection.commit();
             return new UserDetails(user);
 
         } catch (SQLException e) {
-            final String message = "error on creating user! ";
-            LOGGER.error(message, e);
-            throw new UserServiceException(message);
+            e.printStackTrace();
+            throw new UserServiceException("error on creating user! ");
         }
     }
 
     @Override
-    public UserDetails getUserProfileByUsername(String userName) throws UserServiceException, UserNotFoundException {
-        try {
+    public UserDetails getUserProfileByUsername(String userName) throws UserServiceException, EntityNotFoundException {
+        try (Connection connection = ConnectionFactory.getConnection()) {
 
-            User user = getRepository().findByUsername(userName)
-                    .orElseThrow(() -> new UserNotFoundException("user not found for username: " + userName));
+            User user = getRepository().findByUsername(userName, connection)
+                    .orElseThrow(() -> new EntityNotFoundException("user not found for username: " + userName));
 
             return new UserDetails(user);
 
         } catch (SQLException e) {
-            final String message = String.format("error on getting user for username: %s ", userName);
-            LOGGER.error(message, e);
-            throw new UserServiceException(message);
+            e.printStackTrace();
+            throw new UserServiceException(String.format("error on getting user for username: %s ", userName));
         }
     }
 
     @Override
-    public User getUserDbEntityByUserName(String username) throws UserServiceException, UserNotFoundException {
-        try {
+    public User getUserDbEntityByUserName(String username) throws UserServiceException, EntityNotFoundException {
+        try (Connection connection = ConnectionFactory.getConnection()) {
 
-            return getByUsername(username);
+            return getByUsername(username, connection);
 
         } catch (SQLException e) {
-            final String message = String.format("error on getting user for username: %s ", username);
-            LOGGER.error(message, e);
-            throw new UserServiceException(message);
+            e.printStackTrace();
+            throw new UserServiceException(String.format("error on getting user for username: %s ", username));
         }
     }
 
-    private User getByUsername(String userName) throws SQLException, UserNotFoundException {
-        return getRepository().findByUsername(userName).orElseThrow(() ->
-                new UserNotFoundException("user not found for username: " + userName));
+    private User getByUsername(String userName, Connection connection) throws SQLException, EntityNotFoundException {
+        return getRepository().findByUsername(userName, connection)
+                .orElseThrow(() -> new EntityNotFoundException("user not found for username: " + userName));
     }
 
     @Override
-    public UserDetails updateUserProfile(UserDetails userProfile) throws UserServiceException, UserNotFoundException {
-        try {
+    public UserDetails updateUserProfile(UserDetails userProfile) throws UserServiceException, EntityNotFoundException {
 
-            User user = getByUsername(userProfile.getUserName());
+        try (Connection connection = ConnectionFactory.getConnection()) {
+
+            User user = getByUsername(userProfile.getUserName(), connection);
 
             user.setEmail(userProfile.getEmail());
 
-            getRepository().update(user);
+            getRepository().update(user, connection);
 
-            getRepository().getConnection().commit();
+            connection.commit();
 
             return new UserDetails(user);
 
         } catch (SQLException e) {
-            final String message = "error on updating user profile! ";
-            LOGGER.error(message, e);
-            throw new UserServiceException(message);
+            e.printStackTrace();
+            throw new UserServiceException("error on updating user profile! ");
         }
     }
 
     @Override
-    public User getUserByWalletId(Integer walletId) throws UserServiceException, UserNotFoundException {
-        try {
-            return getRepository().getByWalletId(walletId).orElseThrow(() ->
-                    new UserNotFoundException("user not found by walletId: " + walletId));
+    public User getUserByWalletId(Long walletId) throws UserServiceException, EntityNotFoundException {
+        try (Connection connection = ConnectionFactory.getConnection()) {
+            return getRepository().getByWalletId(walletId, connection)
+                    .orElseThrow(() -> new EntityNotFoundException("user not found by walletId: " + walletId));
         } catch (SQLException e) {
-            final String message = "error on getting user by walletId: " + walletId;
-            LOGGER.error(message, e);
-            throw new UserServiceException(message);
+            e.printStackTrace();
+            throw new UserServiceException("error on getting user by walletId: " + walletId);
         }
     }
 

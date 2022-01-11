@@ -3,7 +3,7 @@ package controllers.auth;
 import controllers.AuthUserUtils;
 import entities.User;
 import services.UserService;
-import services.exception.UserNotFoundException;
+import services.exception.EntityNotFoundException;
 import services.exception.UserServiceException;
 import services.impl.UserEntityServiceImpl;
 
@@ -42,7 +42,7 @@ public class LoginServlet extends HttpServlet {
 
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());
-        } catch (UserNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             resp.sendError(400, e.getMessage());
         }
 
@@ -60,10 +60,10 @@ public class LoginServlet extends HttpServlet {
     private void login(HttpServletRequest req, User user) {
         HttpSession session = req.getSession(true);
         session.setAttribute("user", user);
-        session.setMaxInactiveInterval(30);
+        session.setMaxInactiveInterval(1800);
     }
 
     private boolean checkAccess(User user, String password) {
-        return Arrays.toString(Base64.getDecoder().decode(user.getPasswordHash())).equals(password);
+        return Base64.getEncoder().encodeToString(password.getBytes()).equals(user.getPasswordHash());
     }
 }
