@@ -1,6 +1,8 @@
 package controllers.wallet;
 
+import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.wallet.dto.WithdrawRequestDTO;
 import entities.User;
 import services.WalletService;
 import services.dto.MoneyDepositWithdrawDetails;
@@ -32,12 +34,13 @@ public class WithdrawServlet extends HttpServlet {
 
         User currentUser = currentUserOptional.get();
 
-        Integer amount = Integer.valueOf(req.getParameter("amount"));
+        WithdrawRequestDTO withdrawRequestDTO =
+                new Gson().fromJson(req.getReader(), WithdrawRequestDTO.class);
 
         try {
 
-            String transactionId =
-                    walletService.withdraw(new MoneyDepositWithdrawDetails(currentUser.getUsername(), amount));
+            String transactionId = walletService.withdraw(
+                    new MoneyDepositWithdrawDetails(currentUser.getUsername(), withdrawRequestDTO.getAmount()));
 
             PrintWriter writer = resp.getWriter();
             writer.write(" Withdraw Transaction Created... \n" +

@@ -1,6 +1,8 @@
 package controllers.auth;
 
+import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.auth.dto.LoginDTO;
 import entities.User;
 import services.UserService;
 import services.exception.EntityNotFoundException;
@@ -29,13 +31,12 @@ public class LoginServlet extends HttpServlet {
 
         AuthUserUtils.removeUserFromCurrentSessionIfExist(req);
 
-        String username = req.getParameter("username");
-        String password = req.getParameter("password");
+        LoginDTO loginDTO = new Gson().fromJson(req.getReader(), LoginDTO.class);
 
         try {
-            User user = userService.getUserDbEntityByUserName(username);
+            User user = userService.getUserDbEntityByUserName(loginDTO.getUsername());
 
-            if (checkAccess(user, password))
+            if (checkAccess(user, loginDTO.getPassword()))
                 login(req, user);
 
             else resp.sendError(401, "Invalid Password!");
@@ -47,7 +48,7 @@ public class LoginServlet extends HttpServlet {
         }
 
         PrintWriter writer = resp.getWriter();
-        writer.write(" Welcome Back Dear " + username);
+        writer.write(" Welcome Back Dear " + loginDTO.getUsername());
         writer.flush();
     }
 

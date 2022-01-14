@@ -1,8 +1,11 @@
 package controllers.auth;
 
+import com.google.gson.Gson;
+import controllers.auth.dto.RegisterRequestDTO;
+import controllers.auth.dto.RegisterResponseDTO;
 import entities.User;
-import services.dto.UserDetails;
 import services.UserService;
+import services.dto.UserDetails;
 import services.exception.UserServiceException;
 import services.exception.notValidUserToCreateException;
 import services.impl.UserEntityServiceImpl;
@@ -23,25 +26,30 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        String username = req.getParameter("username");
-        String email = req.getParameter("email");
-        String password = req.getParameter("password");
+        Gson gson = new Gson();
 
-        if (username == null || password == null) {
+        RegisterRequestDTO registerRequestDTO = gson.fromJson(req.getReader(), RegisterRequestDTO.class);
+
+        if (notValidRegisterDTO(registerRequestDTO)) {
             resp.sendError(403, "username or password must be provided!");
             return;
         }
 
-        String passwordHash = Base64.getEncoder().encodeToString(password.getBytes());
+        String passwordHash = Base64.getEncoder().encodeToString(registerRequestDTO.getPassword().getBytes());
 
         try {
 
-            UserDetails userDetails = userService.createSignUp(new User(username, passwordHash, email));
+            UserDetails userDetails = userService.createSignUp(
+                    new User(registerRequestDTO.getUsername(), passwordHash, registerRequestDTO.getEmail()));
+
+            RegisterResponseDTO registerResponseDTO =
+                    new RegisterResponseDTO(userDetails.getUserName(), userDetails.getEmail());
 
             PrintWriter writer = resp.getWriter();
-            writer.write(" Registered Successfully... \n" +
-                    "  Username: " + userDetails.getUserName() + " \n" +
-                    "  Email: " + userDetails.getEmail());
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+
+            writer.write(gson.toJson(registerResponseDTO));
             writer.flush();
 
         } catch (UserServiceException e) {
@@ -49,6 +57,10 @@ public class RegisterServlet extends HttpServlet {
         } catch (notValidUserToCreateException e) {
             resp.sendError(400, e.getMessage());
         }
+    }
+
+    private boolean notValidRegisterDTO(RegisterRequestDTO registerRequestDTO) {
+        return registerRequestDTO.getUsername() == null || registerRequestDTO.getPassword() == null;
     }
 
 }

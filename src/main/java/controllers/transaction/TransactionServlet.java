@@ -58,7 +58,6 @@ public class TransactionServlet extends HttpServlet {
             TransactionDTO transactionDTO = new TransactionDTO(transaction.getId(), transaction.getTransactionDate(),
                     transaction.getStatus(), transaction.getType(), senderUsername, receiverUsername);
 
-            // TODO: 1/10/2022 change them all and create related html pages. not here! 
             PrintWriter writer = resp.getWriter();
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");

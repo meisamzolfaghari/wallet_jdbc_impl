@@ -2,6 +2,7 @@ package controllers.user;
 
 import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.user.dto.UpdateUserProfileDTO;
 import controllers.user.dto.UserProfileDTO;
 import entities.User;
 import services.UserService;
@@ -33,11 +34,13 @@ public class UserServlet extends HttpServlet {
         }
 
         User currentUser = currentUserOptional.get();
-        String email = req.getParameter("email");
+        UpdateUserProfileDTO updateUserProfileDTO =
+                new Gson().fromJson(req.getReader(), UpdateUserProfileDTO.class);
 
         try {
 
-            UserDetails userDetails = userService.updateUserProfile(new UserDetails(currentUser.getUsername(), email));
+            UserDetails userDetails = userService.updateUserProfile(
+                    new UserDetails(currentUser.getUsername(), updateUserProfileDTO.getEmail()));
 
             setUserProfileDTOResponse(resp, userDetails);
 

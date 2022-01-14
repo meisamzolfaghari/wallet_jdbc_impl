@@ -1,6 +1,9 @@
 package controllers.wallet;
 
+import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.wallet.dto.DepositRequestDTO;
+import controllers.wallet.dto.TransferToOtherUserRequestDTO;
 import entities.User;
 import services.WalletService;
 import services.dto.MoneyTransferDetails;
@@ -32,13 +35,15 @@ public class TransferToOtherUserServlet extends HttpServlet {
 
         User currentUser = currentUserOptional.get();
 
-        String receiverUsername = req.getParameter("receiverUsername");
-        Integer amount = Integer.valueOf(req.getParameter("amount"));
+        TransferToOtherUserRequestDTO transferToOtherUserRequestDTO =
+                new Gson().fromJson(req.getReader(), TransferToOtherUserRequestDTO.class);
 
         try {
 
             String transactionId = walletService.moneyTransferToOtherUser(
-                    new MoneyTransferDetails(currentUser.getUsername(), receiverUsername, amount));
+                    new MoneyTransferDetails(currentUser.getUsername(),
+                            transferToOtherUserRequestDTO.getReceiverUsername(),
+                            transferToOtherUserRequestDTO.getAmount()));
 
             PrintWriter writer = resp.getWriter();
             writer.write(" Transfer Transaction Created... \n" +

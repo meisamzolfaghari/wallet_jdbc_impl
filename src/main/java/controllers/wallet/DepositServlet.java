@@ -1,6 +1,8 @@
 package controllers.wallet;
 
+import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.wallet.dto.DepositRequestDTO;
 import entities.User;
 import services.WalletService;
 import services.dto.MoneyDepositWithdrawDetails;
@@ -8,6 +10,7 @@ import services.exception.EntityNotFoundException;
 import services.exception.WalletServiceException;
 import services.impl.WalletEntityServiceImpl;
 
+import javax.servlet.GenericServlet;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,12 +35,13 @@ public class DepositServlet extends HttpServlet {
 
         User currentUser = currentUserOptional.get();
 
-        Integer amount = Integer.valueOf(req.getParameter("amount"));
+        DepositRequestDTO depositRequestDTO =
+                new Gson().fromJson(req.getReader(), DepositRequestDTO.class);
 
         try {
 
-            String transactionId =
-                    walletService.deposit(new MoneyDepositWithdrawDetails(currentUser.getUsername(), amount));
+            String transactionId = walletService.deposit(
+                    new MoneyDepositWithdrawDetails(currentUser.getUsername(), depositRequestDTO.getAmount()));
 
             PrintWriter writer = resp.getWriter();
             writer.write(" Deposit Transaction Created... \n" +
