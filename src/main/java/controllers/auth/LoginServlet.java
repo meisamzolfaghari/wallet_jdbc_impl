@@ -25,7 +25,7 @@ public class LoginServlet extends HttpServlet {
     // TODO: 1/10/2022 add parameter to request body instead of parameter
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
         AuthUserUtils.removeUserFromCurrentSessionIfExist(req);
 
