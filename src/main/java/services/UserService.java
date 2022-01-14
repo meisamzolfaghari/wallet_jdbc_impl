@@ -1,7 +1,7 @@
 package services;
 
 import entities.User;
-import entities.dto.UserDetails;
+import services.dto.UserDetails;
 import services.exception.EntityNotFoundException;
 import services.exception.UserServiceException;
 import services.exception.notValidUserToCreateException;

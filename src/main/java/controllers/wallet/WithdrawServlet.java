@@ -40,14 +40,9 @@ public class WithdrawServlet extends HttpServlet {
                     walletService.withdraw(new MoneyDepositWithdrawDetails(currentUser.getUsername(), amount));
 
             PrintWriter writer = resp.getWriter();
-            resp.setContentType("text/html");
-
-            writer.write("<html>" +
-                    "<body>" +
-                    "<h2>Withdraw Transaction Created...</h2>" +
-                    "<p> Transaction Id: " + transactionId + "</p>" +
-                    "</body>" +
-                    "</html>");
+            writer.write(" Withdraw Transaction Created... \n" +
+                    " Transaction Id: " + transactionId);
+            writer.flush();
 
         } catch (EntityNotFoundException e) {
             resp.sendError(406, e.getMessage());

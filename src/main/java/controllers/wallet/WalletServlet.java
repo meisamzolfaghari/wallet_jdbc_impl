@@ -1,6 +1,8 @@
 package controllers.wallet;
 
+import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.wallet.dto.WalletDTO;
 import entities.User;
 import entities.Wallet;
 import services.WalletService;
@@ -37,16 +39,15 @@ public class WalletServlet extends HttpServlet {
 
             Wallet wallet = walletService.getById(currentUser.getWalletId());
 
-            PrintWriter writer = resp.getWriter();
-            resp.setContentType("text/html");
+            WalletDTO walletDTO = new WalletDTO(currentUser.getUsername(), wallet.getBalance());
 
-            writer.write("<html>" +
-                    "<body>" +
-                    "<h2>Deposit Transaction Created...</h2>" +
-                    "<p> Username: " + currentUser.getUsername() + "</p>" +
-                    "<p> Balance: " + wallet.getBalance() + "</p>" +
-                    "</body>" +
-                    "</html>");
+            PrintWriter writer = resp.getWriter();
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+
+            writer.write(new Gson().toJson(walletDTO));
+            writer.flush();
+
         } catch (WalletServiceException e) {
             resp.sendError(504, e.getMessage());
         } catch (EntityNotFoundException e) {

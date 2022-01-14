@@ -1,6 +1,8 @@
 package controllers.transaction;
 
+import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.transaction.dto.TransactionDTO;
 import entities.Transaction;
 import entities.User;
 import services.TransactionService;
@@ -53,21 +55,15 @@ public class TransactionServlet extends HttpServlet {
             String senderUsername = getUsernameByWalletId(transaction.getSenderWalletId());
             String receiverUsername = getUsernameByWalletId(transaction.getReceiverWalletId());
 
+            TransactionDTO transactionDTO = new TransactionDTO(transaction.getId(), transaction.getTransactionDate(),
+                    transaction.getStatus(), transaction.getType(), senderUsername, receiverUsername);
+
             // TODO: 1/10/2022 change them all and create related html pages. not here! 
             PrintWriter writer = resp.getWriter();
-            resp.setContentType("text/html");
-
-            writer.write("<html>" +
-                    "<body>" +
-                    "<h2>Deposit Transaction Created...</h2>" +
-                    "<p> Transaction Amount: " + transaction.getAmount() + "</p>" +
-                    "<p> Transaction Date: " + transaction.getTransactionDate() + "</p>" +
-                    "<p> Transaction Status: " + transaction.getStatus() + "</p>" +
-                    "<p> Transaction Type: " + transaction.getType() + "</p>" +
-                    "<p> Transaction Sender Username: " + senderUsername + "</p>" +
-                    "<p> Transaction Receiver Username: " + receiverUsername + "</p>" +
-                    "</body>" +
-                    "</html>");
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            writer.print(new Gson().toJson(transactionDTO));
+            writer.flush();
 
         } catch (TransactionServiceException | UserServiceException e) {
             resp.sendError(504, e.getMessage());

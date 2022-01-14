@@ -19,13 +19,8 @@ public class LogoutServlet extends HttpServlet {
         AuthUserUtils.removeUserFromCurrentSessionIfExist(req);
 
         PrintWriter writer = resp.getWriter();
-        resp.setContentType("text/html");
-
-        writer.write("<html>" +
-                "<body>"+
-                "<h2>Logout Successfully...</h2>" +
-                "</body>" +
-                "</html>");
+        writer.write(" Logout Successfully... ");
+        writer.flush();
     }
 
 }

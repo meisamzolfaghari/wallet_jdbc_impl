@@ -1,4 +1,4 @@
-package entities.dto;
+package services.dto;
 
 import entities.User;
 

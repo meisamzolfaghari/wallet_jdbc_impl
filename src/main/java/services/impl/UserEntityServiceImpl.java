@@ -3,7 +3,7 @@ package services.impl;
 import config.ConnectionFactory;
 import entities.User;
 import entities.Wallet;
-import entities.dto.UserDetails;
+import services.dto.UserDetails;
 import repos.UserRepository;
 import repos.WalletRepository;
 import services.UserService;

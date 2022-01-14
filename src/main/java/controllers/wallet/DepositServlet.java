@@ -40,14 +40,9 @@ public class DepositServlet extends HttpServlet {
                     walletService.deposit(new MoneyDepositWithdrawDetails(currentUser.getUsername(), amount));
 
             PrintWriter writer = resp.getWriter();
-            resp.setContentType("text/html");
-
-            writer.write("<html>" +
-                    "<body>" +
-                    "<h2>Deposit Transaction Created...</h2>" +
-                    "<p> Transaction Id: " + transactionId + "</p>" +
-                    "</body>" +
-                    "</html>");
+            writer.write(" Deposit Transaction Created... \n" +
+                    " Transaction Id: " + transactionId);
+            writer.flush();
 
         } catch (EntityNotFoundException e) {
             resp.sendError(406, e.getMessage());

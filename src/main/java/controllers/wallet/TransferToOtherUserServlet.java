@@ -38,17 +38,12 @@ public class TransferToOtherUserServlet extends HttpServlet {
         try {
 
             String transactionId = walletService.moneyTransferToOtherUser(
-                            new MoneyTransferDetails(currentUser.getUsername(), receiverUsername, amount));
+                    new MoneyTransferDetails(currentUser.getUsername(), receiverUsername, amount));
 
             PrintWriter writer = resp.getWriter();
-            resp.setContentType("text/html");
-
-            writer.write("<html>" +
-                    "<body>" +
-                    "<h2>Transfer Transaction Created...</h2>" +
-                    "<p> Transaction Id: " + transactionId + "</p>" +
-                    "</body>" +
-                    "</html>");
+            writer.write(" Transfer Transaction Created... \n" +
+                    " Transaction Id: " + transactionId);
+            writer.flush();
 
         } catch (EntityNotFoundException e) {
             resp.sendError(406, e.getMessage());

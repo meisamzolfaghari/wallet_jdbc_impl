@@ -1,7 +1,7 @@
 package controllers.auth;
 
 import entities.User;
-import entities.dto.UserDetails;
+import services.dto.UserDetails;
 import services.UserService;
 import services.exception.UserServiceException;
 import services.exception.notValidUserToCreateException;
@@ -39,15 +39,10 @@ public class RegisterServlet extends HttpServlet {
             UserDetails userDetails = userService.createSignUp(new User(username, passwordHash, email));
 
             PrintWriter writer = resp.getWriter();
-            resp.setContentType("text/html");
-
-            writer.write("<html>" +
-                    "<body>" +
-                    "<h2>Registered Successfully...</h2>" +
-                    "<p> Username: " + userDetails.getUserName() + "</p>" +
-                    "<p> Email: " + userDetails.getEmail() + "</p>" +
-                    "</body>" +
-                    "</html>");
+            writer.write(" Registered Successfully... \n" +
+                    "  Username: " + userDetails.getUserName() + " \n" +
+                    "  Email: " + userDetails.getEmail());
+            writer.flush();
 
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());

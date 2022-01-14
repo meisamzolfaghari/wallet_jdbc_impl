@@ -1,9 +1,11 @@
 package controllers.user;
 
+import com.google.gson.Gson;
 import controllers.AuthUserUtils;
+import controllers.user.dto.UserProfileDTO;
 import entities.User;
-import entities.dto.UserDetails;
 import services.UserService;
+import services.dto.UserDetails;
 import services.exception.EntityNotFoundException;
 import services.exception.UserServiceException;
 import services.impl.UserEntityServiceImpl;
@@ -37,7 +39,7 @@ public class UserServlet extends HttpServlet {
 
             UserDetails userDetails = userService.updateUserProfile(new UserDetails(currentUser.getUsername(), email));
 
-            showUserProfileHtml(resp, userDetails);
+            setUserProfileDTOResponse(resp, userDetails);
 
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());
@@ -60,7 +62,8 @@ public class UserServlet extends HttpServlet {
         try {
             UserDetails userDetails = userService.getUserProfileByUsername(currentUser.getUsername());
 
-            showUserProfileHtml(resp, userDetails);
+            setUserProfileDTOResponse(resp, userDetails);
+
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());
         } catch (EntityNotFoundException e) {
@@ -68,16 +71,14 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-    private void showUserProfileHtml(HttpServletResponse resp, UserDetails userDetails) throws IOException {
-        PrintWriter writer = resp.getWriter();
-        resp.setContentType("text/html");
+    private void setUserProfileDTOResponse(HttpServletResponse resp, UserDetails userDetails) throws IOException {
+        UserProfileDTO userProfileDTO = new UserProfileDTO(userDetails.getUserName(), userDetails.getEmail());
 
-        writer.write("<html>" +
-                "<body>" +
-                "<h2>Updated User Profile Successfully...</h2>" +
-                "<p> Username: " + userDetails.getUserName() + "</p>" +
-                "<p> Email: " + userDetails.getEmail() + "</p>" +
-                "</body>" +
-                "</html>");
+        PrintWriter writer = resp.getWriter();
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+
+        writer.write(new Gson().toJson(userProfileDTO));
+        writer.flush();
     }
 }

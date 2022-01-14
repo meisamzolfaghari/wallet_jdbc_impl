@@ -47,14 +47,8 @@ public class LoginServlet extends HttpServlet {
         }
 
         PrintWriter writer = resp.getWriter();
-        resp.setContentType("text/html");
-
-        writer.write("<html>" +
-                "<body>" +
-                "<h2>Login Successfully...</h2>" +
-                "<p> Welcome Back Dear " + username + "</p>" +
-                "</body>" +
-                "</html>");
+        writer.write(" Welcome Back Dear " + username);
+        writer.flush();
     }
 
     private void login(HttpServletRequest req, User user) {
