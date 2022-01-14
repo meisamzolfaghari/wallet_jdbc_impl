@@ -37,7 +37,7 @@ public class LoginServlet extends HttpServlet {
             if (checkAccess(user, loginDTO.getPassword()))
                 login(req, user);
 
-            else resp.sendError(401, "Invalid Password!");
+            else resp.sendError(401, "Username or Password is Invalid!");
 
         } catch (UserServiceException e) {
             resp.sendError(504, e.getMessage());

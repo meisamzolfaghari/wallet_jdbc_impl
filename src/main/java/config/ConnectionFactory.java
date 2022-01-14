@@ -6,16 +6,20 @@ import java.sql.SQLException;
 
 public class ConnectionFactory {
 
-    public static final String URL = "jdbc:mysql://localhost:3306/test_db?createDatabaseIfNotExist=true";
-    public static final String USERNAME = "root";
-    public static final String PASSWORD = "root";
-
-    private ConnectionFactory() {}
+    private ConnectionFactory() {
+    }
 
     public static Connection getConnection() {
+
+        ConnectionConfig connectionConfig = ConnectionConfig.getInstance();
+
         try {
+            // TODO: 1/14/2022 read how this code internally works with reflection
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            Connection connection = DriverManager.getConnection(
+                    connectionConfig.getUrl(),
+                    connectionConfig.getUsername(),
+                    connectionConfig.getPassword());
             connection.setAutoCommit(false);
             return connection;
         } catch (SQLException | ClassNotFoundException e) {
