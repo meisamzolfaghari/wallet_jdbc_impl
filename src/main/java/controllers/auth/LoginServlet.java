@@ -24,8 +24,6 @@ public class LoginServlet extends HttpServlet {
 
     private final UserService userService = UserEntityServiceImpl.getInstance();
 
-    // TODO: 1/10/2022 add parameter to request body instead of parameter
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
