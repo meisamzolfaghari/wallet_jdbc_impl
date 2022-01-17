@@ -16,11 +16,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.Base64;
 
 @WebServlet(name = "LoginServlet", urlPatterns = "/auth/login")
 public class LoginServlet extends HttpServlet {
+
+    // TODO: 1/17/2022 use jsp and basic authentication
 
     private final UserService userService = UserEntityServiceImpl.getInstance();
 

@@ -19,13 +19,15 @@ public class ConnectionConfig {
     private String password = null;
 
     private ConnectionConfig() {
-        try (InputStream inputStream = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("config.properties")) {
+        try (InputStream inputStream = ResourceProvider.getConfigResource()) {
+
             Properties properties = new Properties();
             properties.load(inputStream);
+
             url = properties.getProperty("url");
             username = properties.getProperty("username");
             password = properties.getProperty("password");
+
         } catch (IOException e) {
             e.printStackTrace();
         }

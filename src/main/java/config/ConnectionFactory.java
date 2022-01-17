@@ -14,7 +14,6 @@ public class ConnectionFactory {
         ConnectionConfig connectionConfig = ConnectionConfig.getInstance();
 
         try {
-            // TODO: 1/14/2022 read how this code internally works with reflection
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection connection = DriverManager.getConnection(
                     connectionConfig.getUrl(),
